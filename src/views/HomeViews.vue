@@ -1,0 +1,313 @@
+<script>
+import { getUsers } from '@/services/services.js';
+import { getDavomat } from '@/services/services.js';
+import createEmp from '@/components/createEmp.vue';
+import empCard from '@/components/empCard.vue';
+import register from '@/components/register.vue';
+import { useStore } from '@/stores/counter';
+import updateEmp from '@/components/updateEmp.vue';
+import davomatCard from '@/components/davomatCard.vue';
+
+export default {
+  components: {
+    createEmp,
+    empCard,
+    register,
+    updateEmp,
+    davomatCard
+  },
+  data() {
+    return {
+      users: [],
+      store: useStore(),
+      limit: 5,
+      page: 0,
+      loading: false,
+      davomatUsers: {}
+    }
+  },
+  methods: {
+    async fetchUsers() {
+      if (this.loading) return;
+      this.loading = true;
+
+      try {
+        const res = await getUsers(this.page, this.limit);
+        this.users.push(...res.data);
+        this.page += 1;
+
+        if (res.data.length === 0) {
+          this.noMoreData = true;
+        }
+      } catch (error) {
+        console.error('Ошибка при загрузке пользователей:', error);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async getDavomat() {
+      const res = await getDavomat()
+      this.davomatUsers = res?.data?.data
+      console.log(res.data.data)
+    },
+
+    handleScroll(event) {
+      const { scrollTop, scrollHeight, clientHeight } = event.target;
+      if (scrollTop + clientHeight >= scrollHeight - 10 && !this.loading && !this.noMoreData) {
+        this.fetchUsers();
+      }
+    },
+  },
+
+  mounted() {
+    this.fetchUsers();
+    this.getDavomat()
+  }
+}
+</script>
+
+<template>
+  <div class="pl-[20px] pr-[20px]">
+    <updateEmp v-if="store.updateEmpShow" />
+    <register />
+    <button @click="store.authSwitch = true"
+      class="p-[10px] bg-orange-600 rounded-[5px] absolute top-[110px] right-[30px]">Authorization</button>
+    <span style="border: 2px solid #16a34a; transition: all .5s ease;" :style="{ 'top': store.noti ? 0 : -100 + '%' }"
+      class="notification fixed left-[43%] top-[0] p-[13px] bg-[#000] rounded-[5px]">Hodim mofaqiyatlik
+      qo'shildi!</span>
+    <div class="w-full flex gap-[20px]">
+      <div class="left-nav-bar-items flex flex-col gap-[10px] mt-[20px]">
+        <div style="border: 1px solid #fff;"
+          class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
+          <svg class="w-[20px]" id="Layer_1_1_" fill="#fff" style="enable-background:new 0 0 16 16;" version="1.1"
+            viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <polygon
+              points="15,5 11,5 11,15 10,15 10,0 6,0 6,15 5,15 5,8 1,8 1,15 0,15 0,16 1,16 5,16 6,16 10,16 11,16 15,16 16,16 16,15   15,15 " />
+          </svg>
+          <span class="text-[14px] text-[#c9c9c9]">Hisobotlar</span>
+        </div>
+
+        <div
+          class="left-nav-bar-item p-[10px] bg-orange-600 flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
+          <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.0//EN' 'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'><svg
+            enable-background="new 0 0 24 24" class="w-[30px]" fill="#fff" id="Layer_1" version="1.0"
+            viewBox="0 0 24 24" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <g>
+              <path
+                d="M9,9c0-1.7,1.3-3,3-3s3,1.3,3,3c0,1.7-1.3,3-3,3S9,10.7,9,9z M12,14c-4.6,0-6,3.3-6,3.3V19h12v-1.7C18,17.3,16.6,14,12,14z   " />
+            </g>
+            <g>
+              <g>
+                <circle cx="18.5" cy="8.5" r="2.5" />
+              </g>
+              <g>
+                <path
+                  d="M18.5,13c-1.2,0-2.1,0.3-2.8,0.8c2.3,1.1,3.2,3,3.2,3.2l0,0.1H23v-1.3C23,15.7,21.9,13,18.5,13z" />
+              </g>
+            </g>
+            <g>
+              <g>
+                <circle cx="18.5" cy="8.5" r="2.5" />
+              </g>
+              <g>
+                <path
+                  d="M18.5,13c-1.2,0-2.1,0.3-2.8,0.8c2.3,1.1,3.2,3,3.2,3.2l0,0.1H23v-1.3C23,15.7,21.9,13,18.5,13z" />
+              </g>
+            </g>
+            <g>
+              <g>
+                <circle cx="5.5" cy="8.5" r="2.5" />
+              </g>
+              <g>
+                <path d="M5.5,13c1.2,0,2.1,0.3,2.8,0.8c-2.3,1.1-3.2,3-3.2,3.2l0,0.1H1v-1.3C1,15.7,2.1,13,5.5,13z" />
+              </g>
+            </g>
+          </svg>
+          <span class="text-[14px] text-[#c9c9c9]">Hodimlar</span>
+        </div>
+
+        <div style="border: 1px solid #fff;"
+          class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
+          <svg class="w-[23px]" fill="#fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <title />
+            <g id="invoice">
+              <path
+                d="M22,9H19V2a1,1,0,0,0-1.6-.8L15.33,2.75C12.21.42,13.1.42,10,2.75,6.89.42,7.77.42,4.66,2.75L2.6,1.2A1,1,0,0,0,1,2V20a3,3,0,0,0,3,3H20a3,3,0,0,0,3-3V10A1,1,0,0,0,22,9ZM4,21a1,1,0,0,1-1-1V4c2,1.47,1.41,1.44,4.33-.75,3.1,2.33,2.22,2.33,5.33,0,3,2.24,2.42,2.19,4.34.75,0,16.75-.08,16.3.17,17Zm17-1a1,1,0,0,1-2,0V11h2Z" />
+              <path d="M6,10H9A1,1,0,0,0,9,8H6A1,1,0,0,0,6,10Z" />
+              <path d="M14,12H6a1,1,0,0,0,0,2h8A1,1,0,0,0,14,12Z" />
+              <path d="M14,16H6a1,1,0,0,0,0,2h8A1,1,0,0,0,14,16Z" />
+            </g>
+          </svg>
+          <span class="text-[14px] text-[#c9c9c9]">Savdo</span>
+        </div>
+
+        <div style="border: 1px solid #fff;"
+          class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
+          <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.0//EN' 'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'><svg
+            enable-background="new 0 0 24 24" class="w-[23px]" fill="#fff" id="Layer_1" version="1.0"
+            viewBox="0 0 24 24" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <g>
+              <circle cx="18.5" cy="6.5" r="2.5" />
+            </g>
+            <g>
+              <circle cx="5.5" cy="6.5" r="2.5" />
+            </g>
+            <g>
+              <circle cx="12" cy="5" r="3" />
+            </g>
+            <path
+              d="M18.5,10c-0.5,0-1.6,0.2-2,0.5c0,0,0.5,1.1,0.5,2.5c0,0-1.2-4-5-4s-5,4-5,4c0-1.4,0.5-2.5,0.5-2.5C7.1,10.2,6,10,5.5,10  C3.8,10,2,12,2,13.3V19c0,1.1,0.9,2,2,2h2.9c0.9-0.9,2.5-2,5.1-2s4.2,1.1,5.1,2H20c1.1,0,2-0.9,2-2v-5.7C22,12,20,10,18.5,10z   M12,18c-1.4,0-2.5-1.1-2.5-2.5c0-1.4,1.1-2.5,2.5-2.5s2.5,1.1,2.5,2.5C14.5,16.9,13.4,18,12,18z" />
+          </svg>
+          <span class="text-[14px] text-[#c9c9c9]">Mijozlar</span>
+        </div>
+
+        <div style="border: 1px solid #fff;"
+          class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
+          <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg
+            class="w-[25px]" enable-background="new 0 0 32 32" version="1.1" viewBox="0 0 32 32" xml:space="preserve"
+            xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <g id="Layer_1" />
+            <g id="Layer_2">
+              <g>
+                <line fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
+                  stroke-width="2" x1="16" x2="16" y1="10" y2="12" />
+                <line fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
+                  stroke-width="2" x1="16" x2="16" y1="20" y2="22" />
+                <path d="    M14,20h3c1.1,0,2-0.9,2-2s-0.9-2-2-2h-2c-1.1,0-2-0.9-2-2s0.9-2,2-2h3" fill="none"
+                  stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
+                  stroke-width="2" />
+                <path d="    M16,6c5.5,0,10,4.5,10,10s-4.5,10-10,10S6,21.5,6,16v-3" fill="none" stroke="#fff"
+                  stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+                <polyline fill="none" points="    10,17 6,13 2,17   " stroke="#fff" stroke-linecap="round"
+                  stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+                <path d="    M16,2c7.7,0,14,6.3,14,14s-6.3,14-14,14" fill="none" stroke="#fff" stroke-linecap="round"
+                  stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+              </g>
+            </g>
+          </svg>
+          <span class="text-[14px] text-[#c9c9c9]">Nasiyalar</span>
+        </div>
+
+        <div style="border: 1px solid #fff;"
+          class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
+          <svg height="24" fill="#fff" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M20,8 L20,4 L4,4 L4,8 L20,8 Z M20,16 L4,16 L4,20 L20,20 L20,16 Z M4,2 L20,2 C21.1045695,2 22,2.8954305 22,4 L22,20 C22,21.1045695 21.1045695,22 20,22 L4,22 C2.8954305,22 2,21.1045695 2,20 L2,4 C2,2.8954305 2.8954305,2 4,2 Z M4,10 L4,14 L20,14 L20,10 L4,10 Z M8,11 L15,11 L15,13 L8,13 L8,11 Z M17,7 C16.4477153,7 16,6.55228475 16,6 C16,5.44771525 16.4477153,5 17,5 C17.5522847,5 18,5.44771525 18,6 C18,6.55228475 17.5522847,7 17,7 Z M17,13 C16.4477153,13 16,12.5522847 16,12 C16,11.4477153 16.4477153,11 17,11 C17.5522847,11 18,11.4477153 18,12 C18,12.5522847 17.5522847,13 17,13 Z M17,19 C16.4477153,19 16,18.5522847 16,18 C16,17.4477153 16.4477153,17 17,17 C17.5522847,17 18,17.4477153 18,18 C18,18.5522847 17.5522847,19 17,19 Z"
+              fill-rule="evenodd" />
+          </svg>
+          <span class="text-[14px] text-[#c9c9c9]">Ta'minotlar</span>
+        </div>
+
+        <div style="border: 1px solid #fff;"
+          class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
+          <svg fill="#fff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 10c3.976 0 8-1.374 8-4s-4.024-4-8-4-8 1.374-8 4 4.024 4 8 4z" />
+            <path d="M4 10c0 2.626 4.024 4 8 4s8-1.374 8-4V8c0 2.626-4.024 4-8 4s-8-1.374-8-4v2z" />
+            <path d="M4 14c0 2.626 4.024 4 8 4s8-1.374 8-4v-2c0 2.626-4.024 4-8 4s-8-1.374-8-4v2z" />
+            <path d="M4 18c0 2.626 4.024 4 8 4s8-1.374 8-4v-2c0 2.626-4.024 4-8 4s-8-1.374-8-4v2z" />
+          </svg>
+          <span class="text-[14px] text-[#c9c9c9]">Kassa</span>
+        </div>
+
+        <div style="border: 1px solid #fff;"
+          class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
+          <svg class="w-[20px]" id="Layer_1_1_" fill="#fff" style="enable-background:new 0 0 16 16;" version="1.1"
+            viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <polygon
+              points="15,5 11,5 11,15 10,15 10,0 6,0 6,15 5,15 5,8 1,8 1,15 0,15 0,16 1,16 5,16 6,16 10,16 11,16 15,16 16,16 16,15   15,15 " />
+          </svg>
+          <span class="text-[14px] text-[#c9c9c9]">Harajatlar</span>
+        </div>
+
+        <div style="border: 1px solid #fff;"
+          class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
+          <svg class="w-[20px]" id="Layer_1_1_" fill="#fff" style="enable-background:new 0 0 16 16;" version="1.1"
+            viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <polygon
+              points="15,5 11,5 11,15 10,15 10,0 6,0 6,15 5,15 5,8 1,8 1,15 0,15 0,16 1,16 5,16 6,16 10,16 11,16 15,16 16,16 16,15   15,15 " />
+          </svg>
+          <span class="text-[14px] text-[#c9c9c9]">Mahsulotlar</span>
+        </div>
+
+        <div style="border: 1px solid #fff;"
+          class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
+          <svg class="w-[20px]" id="Layer_1_1_" fill="#fff" style="enable-background:new 0 0 16 16;" version="1.1"
+            viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink">
+            <polygon
+              points="15,5 11,5 11,15 10,15 10,0 6,0 6,15 5,15 5,8 1,8 1,15 0,15 0,16 1,16 5,16 6,16 10,16 11,16 15,16 16,16 16,15   15,15 " />
+          </svg>
+          <span class="text-[14px] text-[#c9c9c9]">Omborlar</span>
+        </div>
+      </div>
+
+      <div class="employees w-full">
+        <div class="employees-wrapper">
+          <h2 class="text-[40px] text-orange-600 font-semibold">HODIMLAR</h2>
+          <div class="employees-btns flex items-center gap-[20px]">
+            <button class="bg-orange-600 w-full p-[8px]">Hodimlar</button>
+            <button style="border: 1px solid;" class="w-full p-[8px]">Davomat</button>
+          </div>
+          <div class="employees-info mt-[13px]">
+            <div class="employees-info-search">
+              <form class="flex items-center">
+                <input style="border: 1px solid #fff; width: 260px;" class="bg-[#000] p-[7px] pl-[15px] rounded-[3px]"
+                  type="text" placeholder="Qidiruv">
+                <button @click="store.createUser = !store.createUser" type="button"
+                  class="bg-green-600 rounded-[3px] text-[20px] pt-[5px] pb-[5px] pl-[15px] pr-[15px]">+</button>
+              </form>
+              <createEmp />
+            </div>
+
+            <div @scroll="handleScroll" style="overflow: auto; height: 700px;"
+              class="emp-cards-wrapper flex flex-col gap-[20px] mt-[20px]">
+              <div v-for="user in users" :key="user.id">
+                <empCard :user="user" />
+              </div>
+            </div>
+          </div>
+
+          <!-- <div class="attend">
+            <div style="border: 1px solid #fff;"  class="attend-wrapper rounded-[10px] p-[15px] pb-[30px]">
+              <div class="attend-info-wrp">
+                <div class="attend-top flex items-center justify-between">
+                  <span>Ismi</span>
+                  <span>Keldi</span>
+                  <span>Ketdi</span>
+                  <span>Jarima/Bonus</span>
+                </div>
+                <span class="w-full h-[1px] flex bg-[#fff]"></span>
+              </div>
+              <div class="attend-cards-wrapper flex flex-col gap-[15px] mt-[20px]">
+                <davomatCard v-for="item in davomatUsers" :key="item" :attend="item"/>
+              </div>
+            </div>
+          </div> -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+</template>
+
+<style>
+.left-nav-bar-items {
+  width: 150px;
+  height: 700px;
+  overflow: auto;
+}
+
+.left-nav-bar-items::-webkit-scrollbar {
+  display: none;
+}
+
+.emp-cards-wrapper::-webkit-scrollbar {
+  display: none;
+}
+</style>

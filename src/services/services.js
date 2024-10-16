@@ -25,24 +25,29 @@ export const token = async (username, password) => {
     })
     if(res.data) {
         localStorage.setItem('token', res?.data?.access_token)
+        setTimeout(()=> {
+            window.location.reload(true)
+        }, 3000)
     }
-    console.log(res)
 }
 
-export const getUsers = async (page = 0, limit = 25, branchId = 0) => {
+export const getUsers = async (page = 0, branchId = 0) => {
     const store = useStore();
-        const res = await service.get(`/get_users?branch_id=${branchId}&page=${page}&limit=${limit}`, {
-            headers: {
-                Authorization: `Bearer ${store.token}`,
-            },
-        });
+    
+    const res = await service.get(`/get_users?branch_id=${branchId}&page=${page}`, {
+        headers: {
+            Authorization: `Bearer ${store.token}`,
+        },
+    });
 
-        if (res.status === 200) {
-            store.authSwitch = false;
-        }
+    if (res.status === 200) {
+        store.authSwitch = false;
+    }
 
-        return res.data;
+    return res.data;
 };
+
+
 
 export const createEmp = async (body) => {
     const store = useStore()
@@ -83,5 +88,17 @@ export const getDavomat = async ()=> {
             Authorization: `Bearer ${store.token}`
         }
     })
+    return res
+}
+
+export const enterUser = async (id)=> {
+    const store = useStore()
+    const res = await service.post("/enter_user", id, {
+        headers: {
+            Authorization: `Bearer ${store.token}`,
+            "Content-Type": `application/json`
+        }
+    })
+    console.log(res)
     return res
 }

@@ -85,3 +85,35 @@ export const getDavomat = async ()=> {
     })
     return res
 }
+
+export const getTaminotlar = async ()=> {
+    const store = useStore()
+    const res = await service.get("/get_parties?status=false&page=0&limit=25&branch_id=1", {
+        headers: {
+            Authorization: `Bearer ${store.token}`
+        }
+    })
+    console.log(res)
+    return res
+}
+
+export const getKassa = async ()=> {
+    const store = useStore()
+    const res = await service.get("/get_markets?search=asdasd&branch_id=0&page=0&limit=25", {
+        headers: {
+            Authorization: `Bearer ${store.token}`
+        }
+    })
+    console.log(res);
+    return res
+}
+
+export const taminot = async (body)=> {
+    const store = useStore()
+    const res = await service.post("/take_supply", body,{
+        headers: {
+            Authorization: `Bearer ${store.token}`
+        }
+    })
+    return res
+}

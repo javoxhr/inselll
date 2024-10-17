@@ -44,9 +44,12 @@ export const getUsers = async (page = 0, branchId = 0) => {
         store.authSwitch = false;
     }
 
-    return res.data;
+    // Убедитесь, что вы возвращаете правильные данные
+    return {
+        users: Array.isArray(res.data.data) ? res.data.data : [], // Измените на res.data.data
+        hasMore: res.data.pages > page + 1 // Проверяем, есть ли еще страницы
+    };
 };
-
 
 
 export const createEmp = async (body) => {

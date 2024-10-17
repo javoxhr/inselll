@@ -61,8 +61,8 @@ export default {
               </g>
             </svg>
           </button>
-          <button>
-            <svg class="w-[28px]" fill="rgba(178 173 173)" id="Layer_1_1_" style="enable-background:new 0 0 16 16;" version="1.1"
+          <button class="pt-[10px] pb-[10px] pl-[20px] pr-[20px] rounded-[10px] bg-orange-600">
+            <svg class="w-[20px]" fill="#fff" id="Layer_1_1_" style="enable-background:new 0 0 16 16;" version="1.1"
               viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
               xmlns:xlink="http://www.w3.org/1999/xlink">
               <path d="M13,5c0-2.761-2.239-5-5-5S3,2.239,3,5v5l-3,2v1h16v-1l-3-2V5z" />

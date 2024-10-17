@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useStore = defineStore('counter', () => {
@@ -9,6 +9,9 @@ export const useStore = defineStore('counter', () => {
   const updateEmpShow = ref(true)
   const getItForUpdate = 0
   const updateInfoEmp = ref(false)
+  const davomatShow = ref(false)
+  const empShow = ref(true)
+  const editInfo = ref({}); 
   return { 
     createUser,
     authSwitch,
@@ -16,6 +19,9 @@ export const useStore = defineStore('counter', () => {
     noti,
     updateEmpShow,
     getItForUpdate,
-    updateInfoEmp
+    updateInfoEmp,
+    davomatShow,
+    empShow,
+    editInfo
   }
 })

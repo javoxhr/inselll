@@ -226,6 +226,7 @@
                           <div class="valyuta rounded-[6px] border border-[#fff] bg-black">
                             <select>
                                 valyuta 
+                                <option></option>
                             </select>
                           </div>
                         </div>

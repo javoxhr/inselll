@@ -23,46 +23,78 @@ export default {
       limit: 5,
       page: 0,
       loading: false,
-      davomatUsers: {}
+      davomatUsers: {},
+      noMoreData: false
     }
   },
   methods: {
     async fetchUsers() {
-      if (this.loading) return;
+      if (this.loading || this.noMoreData) return;
       this.loading = true;
 
       try {
-        const res = await getUsers(this.page, this.limit);
-        this.users.push(...res.data);
-        this.page += 1;
+        const res = await getUsers(this.page);
 
-        if (res.data.length === 0) {
-          this.noMoreData = true;
+        console.log('Текущая страница:', this.page);
+        console.log('Ответ API:', res);
+
+        if (res && res.users && Array.isArray(res.users)) {
+          console.log('Количество пользователей:', res.users.length);
+          this.users.push(...res.users);
+          console.log('Текущий массив пользователей:', this.users);
+
+          if (res.pages > this.page) {
+            this.page += 1;
+            console.log('Данные загружены, продолжаем скроллирование');
+          } else {
+            this.noMoreData = true;
+            console.log('Больше нет страниц для загрузки');
+          }
+        } else {
+          console.warn('Получены некорректные данные от API.');
         }
       } catch (error) {
-        console.error('Ошибка при загрузке пользователей:', error);
+        console.error('Ошибка при загрузке пользователей:', error.message || error);
       } finally {
         this.loading = false;
+        this.scrollToTop();
       }
     },
+
+    scrollToTop() {
+      const container = this.$refs.userContainer;
+
+      if (container) {
+        container.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
+      } else {
+        console.warn('Контейнер не найден.');
+      }
+    },
+
+
+    handleScroll(event) {
+      const { scrollTop, scrollHeight, clientHeight } = event.target;
+
+      if (scrollTop + clientHeight >= scrollHeight - 10 && !this.loading && !this.noMoreData) {
+        this.fetchUsers();
+      }
+    },
+
 
     async getDavomat() {
       const res = await getDavomat()
       this.davomatUsers = res?.data?.data
       console.log(res.data.data)
-    },
+    }
 
-    handleScroll(event) {
-      const { scrollTop, scrollHeight, clientHeight } = event.target;
-      if (scrollTop + clientHeight >= scrollHeight - 10 && !this.loading && !this.noMoreData) {
-        this.fetchUsers();
-      }
-    },
   },
 
   mounted() {
     this.fetchUsers();
-    this.getDavomat()
+    this.getDavomat();
   }
 }
 </script>
@@ -78,10 +110,10 @@ export default {
       qo'shildi!</span>
     <div class="w-full flex gap-[20px]">
       <div class="left-nav-bar-items flex flex-col gap-[10px] mt-[20px]">
-        <div style="border: 1px solid #fff;"
+        <div style="border: 1px solid rgba(178 173 173);"
           class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
-          <svg class="w-[20px]" id="Layer_1_1_" fill="#fff" style="enable-background:new 0 0 16 16;" version="1.1"
-            viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+          <svg class="w-[20px]" id="Layer_1_1_" fill="rgba(178 173 173)" style="enable-background:new 0 0 16 16;"
+            version="1.1" viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink">
             <polygon
               points="15,5 11,5 11,15 10,15 10,0 6,0 6,15 5,15 5,8 1,8 1,15 0,15 0,16 1,16 5,16 6,16 10,16 11,16 15,16 16,16 16,15   15,15 " />
@@ -92,7 +124,7 @@ export default {
         <div
           class="left-nav-bar-item p-[10px] bg-orange-600 flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
           <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.0//EN' 'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'><svg
-            enable-background="new 0 0 24 24" class="w-[30px]" fill="#fff" id="Layer_1" version="1.0"
+            enable-background="new 0 0 24 24" class="w-[30px]" fill="rgba(178 173 173)" id="Layer_1" version="1.0"
             viewBox="0 0 24 24" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink">
             <g>
@@ -129,9 +161,9 @@ export default {
           <span class="text-[14px] text-[#c9c9c9]">Hodimlar</span>
         </div>
 
-        <div style="border: 1px solid #fff;"
+        <div style="border: 1px solid rgba(178 173 173);"
           class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
-          <svg class="w-[23px]" fill="#fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg class="w-[23px]" fill="rgba(178 173 173)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <title />
             <g id="invoice">
               <path
@@ -144,10 +176,10 @@ export default {
           <span class="text-[14px] text-[#c9c9c9]">Savdo</span>
         </div>
 
-        <div style="border: 1px solid #fff;"
+        <div style="border: 1px solid rgba(178 173 173);"
           class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
           <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.0//EN' 'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'><svg
-            enable-background="new 0 0 24 24" class="w-[23px]" fill="#fff" id="Layer_1" version="1.0"
+            enable-background="new 0 0 24 24" class="w-[23px]" fill="rgba(178 173 173)" id="Layer_1" version="1.0"
             viewBox="0 0 24 24" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink">
             <g>
@@ -165,7 +197,7 @@ export default {
           <span class="text-[14px] text-[#c9c9c9]">Mijozlar</span>
         </div>
 
-        <div style="border: 1px solid #fff;"
+        <div style="border: 1px solid rgba(178 173 173);"
           class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
           <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg
             class="w-[25px]" enable-background="new 0 0 32 32" version="1.1" viewBox="0 0 32 32" xml:space="preserve"
@@ -173,28 +205,29 @@ export default {
             <g id="Layer_1" />
             <g id="Layer_2">
               <g>
-                <line fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
-                  stroke-width="2" x1="16" x2="16" y1="10" y2="12" />
+                <line fill="rgba(178 173 173)" stroke="rgba(178 173 173)" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-miterlimit="10" stroke-width="2" x1="16" x2="16" y1="10" y2="12" />
                 <line fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
                   stroke-width="2" x1="16" x2="16" y1="20" y2="22" />
                 <path d="    M14,20h3c1.1,0,2-0.9,2-2s-0.9-2-2-2h-2c-1.1,0-2-0.9-2-2s0.9-2,2-2h3" fill="none"
                   stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
                   stroke-width="2" />
-                <path d="    M16,6c5.5,0,10,4.5,10,10s-4.5,10-10,10S6,21.5,6,16v-3" fill="none" stroke="#fff"
+                <path d="    M16,6c5.5,0,10,4.5,10,10s-4.5,10-10,10S6,21.5,6,16v-3" fill="none"
+                  stroke="rgba(178 173 173)" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
+                  stroke-width="2" />
+                <polyline fill="rgba(178 173 173)" points="    10,17 6,13 2,17   " stroke="rgba(178 173 173)"
                   stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
-                <polyline fill="none" points="    10,17 6,13 2,17   " stroke="#fff" stroke-linecap="round"
-                  stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
-                <path d="    M16,2c7.7,0,14,6.3,14,14s-6.3,14-14,14" fill="none" stroke="#fff" stroke-linecap="round"
-                  stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+                <path d="    M16,2c7.7,0,14,6.3,14,14s-6.3,14-14,14" fill="none" stroke="rgba(178 173 173)"
+                  stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
               </g>
             </g>
           </svg>
           <span class="text-[14px] text-[#c9c9c9]">Nasiyalar</span>
         </div>
 
-        <div style="border: 1px solid #fff;"
+        <div style="border: 1px solid rgba(178 173 173);"
           class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
-          <svg height="24" fill="#fff" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+          <svg height="24" fill="rgba(178 173 173)" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M20,8 L20,4 L4,4 L4,8 L20,8 Z M20,16 L4,16 L4,20 L20,20 L20,16 Z M4,2 L20,2 C21.1045695,2 22,2.8954305 22,4 L22,20 C22,21.1045695 21.1045695,22 20,22 L4,22 C2.8954305,22 2,21.1045695 2,20 L2,4 C2,2.8954305 2.8954305,2 4,2 Z M4,10 L4,14 L20,14 L20,10 L4,10 Z M8,11 L15,11 L15,13 L8,13 L8,11 Z M17,7 C16.4477153,7 16,6.55228475 16,6 C16,5.44771525 16.4477153,5 17,5 C17.5522847,5 18,5.44771525 18,6 C18,6.55228475 17.5522847,7 17,7 Z M17,13 C16.4477153,13 16,12.5522847 16,12 C16,11.4477153 16.4477153,11 17,11 C17.5522847,11 18,11.4477153 18,12 C18,12.5522847 17.5522847,13 17,13 Z M17,19 C16.4477153,19 16,18.5522847 16,18 C16,17.4477153 16.4477153,17 17,17 C17.5522847,17 18,17.4477153 18,18 C18,18.5522847 17.5522847,19 17,19 Z"
               fill-rule="evenodd" />
@@ -202,9 +235,9 @@ export default {
           <span class="text-[14px] text-[#c9c9c9]">Ta'minotlar</span>
         </div>
 
-        <div style="border: 1px solid #fff;"
+        <div style="border: 1px solid rgba(178 173 173);"
           class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
-          <svg fill="#fff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+          <svg fill="rgba(178 173 173)" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 10c3.976 0 8-1.374 8-4s-4.024-4-8-4-8 1.374-8 4 4.024 4 8 4z" />
             <path d="M4 10c0 2.626 4.024 4 8 4s8-1.374 8-4V8c0 2.626-4.024 4-8 4s-8-1.374-8-4v2z" />
             <path d="M4 14c0 2.626 4.024 4 8 4s8-1.374 8-4v-2c0 2.626-4.024 4-8 4s-8-1.374-8-4v2z" />
@@ -213,10 +246,10 @@ export default {
           <span class="text-[14px] text-[#c9c9c9]">Kassa</span>
         </div>
 
-        <div style="border: 1px solid #fff;"
+        <div style="border: 1px solid rgba(178 173 173);"
           class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
-          <svg class="w-[20px]" id="Layer_1_1_" fill="#fff" style="enable-background:new 0 0 16 16;" version="1.1"
-            viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+          <svg class="w-[20px]" id="Layer_1_1_" fill="rgba(178 173 173)" style="enable-background:new 0 0 16 16;"
+            version="1.1" viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink">
             <polygon
               points="15,5 11,5 11,15 10,15 10,0 6,0 6,15 5,15 5,8 1,8 1,15 0,15 0,16 1,16 5,16 6,16 10,16 11,16 15,16 16,16 16,15   15,15 " />
@@ -224,10 +257,10 @@ export default {
           <span class="text-[14px] text-[#c9c9c9]">Harajatlar</span>
         </div>
 
-        <div style="border: 1px solid #fff;"
+        <div style="border: 1px solid rgba(178 173 173);"
           class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
-          <svg class="w-[20px]" id="Layer_1_1_" fill="#fff" style="enable-background:new 0 0 16 16;" version="1.1"
-            viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+          <svg class="w-[20px]" id="Layer_1_1_" fill="rgba(178 173 173)" style="enable-background:new 0 0 16 16;"
+            version="1.1" viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink">
             <polygon
               points="15,5 11,5 11,15 10,15 10,0 6,0 6,15 5,15 5,8 1,8 1,15 0,15 0,16 1,16 5,16 6,16 10,16 11,16 15,16 16,16 16,15   15,15 " />
@@ -235,10 +268,10 @@ export default {
           <span class="text-[14px] text-[#c9c9c9]">Mahsulotlar</span>
         </div>
 
-        <div style="border: 1px solid #fff;"
+        <div style="border: 1px solid rgba(178 173 173);"
           class="left-nav-bar-item p-[10px] flex flex-col items-center w-[130px] gap-[5px] rounded-[5px]">
-          <svg class="w-[20px]" id="Layer_1_1_" fill="#fff" style="enable-background:new 0 0 16 16;" version="1.1"
-            viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+          <svg class="w-[20px]" id="Layer_1_1_" fill="rgba(178 173 173)" style="enable-background:new 0 0 16 16;"
+            version="1.1" viewBox="0 0 16 16" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink">
             <polygon
               points="15,5 11,5 11,15 10,15 10,0 6,0 6,15 5,15 5,8 1,8 1,15 0,15 0,16 1,16 5,16 6,16 10,16 11,16 15,16 16,16 16,15   15,15 " />
@@ -251,21 +284,25 @@ export default {
         <div class="employees-wrapper">
           <h2 class="text-[40px] text-orange-600 font-semibold">HODIMLAR</h2>
           <div class="employees-btns flex items-center gap-[20px]">
-            <button class="bg-orange-600 w-full p-[8px]">Hodimlar</button>
-            <button style="border: 1px solid;" class="w-full p-[8px]">Davomat</button>
+            <button style="border: 1px solid;" :style="{ 'color': store.empShow ? '#fff' : 'rgba(178 173 173)' }"
+              class="w-full p-[8px] text-[#fff]" :class="{ 'bg-orange-600': store.empShow }"
+              @click="store.empShow = true, store.davomatShow = false">Hodimlar</button>
+            <button style="border: 1px solid;" :style="{ 'color': store.davomatShow ? '#fff' : 'rgba(178 173 173)' }"
+              class="w-full p-[8px]" :class="{ 'bg-orange-600': store.davomatShow }"
+              @click="store.empShow = false, store.davomatShow = true">Davomat</button>
           </div>
-          <div class="employees-info mt-[13px]">
+          <div class="employees-info mt-[11px]" v-if="store.empShow">
             <div class="employees-info-search">
               <form class="flex items-center">
-                <input style="border: 1px solid #fff; width: 260px;" class="bg-[#000] p-[7px] pl-[15px] rounded-[3px]"
-                  type="text" placeholder="Qidiruv">
+                <input style="border: 1px solid rgba(178 173 173); width: 260px;"
+                  class="bg-transparent p-[7px] pl-[15px] rounded-[3px]" type="text" placeholder="Qidiruv">
                 <button @click="store.createUser = !store.createUser" type="button"
                   class="bg-green-600 rounded-[3px] text-[20px] pt-[5px] pb-[5px] pl-[15px] pr-[15px]">+</button>
               </form>
               <createEmp />
             </div>
 
-            <div @scroll="handleScroll" style="overflow: auto; height: 700px;"
+            <div ref="userContainer" @scroll="handleScroll" style="overflow: auto; height: 700px;"
               class="emp-cards-wrapper flex flex-col gap-[20px] mt-[20px]">
               <div v-for="user in users" :key="user.id">
                 <empCard :user="user" />
@@ -273,25 +310,30 @@ export default {
             </div>
           </div>
 
-          <!-- <div class="attend">
-            <div style="border: 1px solid #fff;"  class="attend-wrapper rounded-[10px] p-[15px] pb-[30px]">
-              <div class="attend-info-wrp">
-                <div class="attend-top flex items-center justify-between">
-                  <span>Ismi</span>
-                  <span>Keldi</span>
-                  <span>Ketdi</span>
-                  <span>Jarima/Bonus</span>
-                </div>
-                <span class="w-full h-[1px] flex bg-[#fff]"></span>
-              </div>
-              <div class="attend-cards-wrapper flex flex-col gap-[15px] mt-[20px]">
-                <davomatCard v-for="item in davomatUsers" :key="item" :attend="item"/>
-              </div>
+          <div class="attend mt-[40px]" v-if="store.davomatShow">
+            <div style="border: 1px solid rgba(178 173 173);" class="attend-wrapper rounded-[10px] p-[15px] pb-[30px]">
+              <table class="w-full border-collapse">
+                <button class="pt-[10px] pb-[10px] pl-[20px] pr-[20px] bg-orange-600 fixed bottom-2 rounded-[5px] right-2">Yuborish</button>
+                <thead>
+                  <tr class="attend-top pb-[12px] mt-[10px]">
+                    <th style="color: rgba(178 173 173);" class="border p-2"><input class="check-inp w-[25px] h-[25px] mt-[6px]" type="checkbox" ></th>
+                    <th style="color: rgba(178 173 173);" class="border p-2">Ismi</th>
+                    <th style="color: rgba(178 173 173);" class="border p-2">Keldi</th>
+                    <th style="color: rgba(178 173 173);" class="border p-2">Ketdi</th>
+                    <th style="color: rgba(178 173 173);" class="border p-2">Jarima/Bonus</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <!-- Здесь компоненты отображают строки таблицы -->
+                  <davomatCard v-for="item in davomatUsers" :key="item.id" :attend="item" />
+                </tbody>
+              </table>
             </div>
-          </div> -->
+          </div>
+
         </div>
       </div>
-
     </div>
   </div>
 </template>

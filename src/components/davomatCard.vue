@@ -1,6 +1,11 @@
 <script>
 import { closeUser } from "@/services/services"
 import { useStore } from '@/stores/counter';
+import { enterUser } from "@/services/services";
+import { useStore } from "@/stores/counter";
+import Toast, { useToast } from 'vue-toastification';
+import 'vue-toastification/dist/index.css';
+
 export default {
   props: {
     attend: {

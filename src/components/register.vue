@@ -2,12 +2,12 @@
 import { token } from "@/services/services"
 import { useStore } from "@/stores/counter";
 
-import Toast, { useToast } from 'vue-toastification';
-import 'vue-toastification/dist/index.css';
+// import Toast, { useToast } from 'vue-toastification';
+// import 'vue-toastification/dist/index.css';
 
 export default {
     setup() {
-        const toast = useToast();
+        // const toast = useToast();
 
         return {
             showSuccessNotification() {

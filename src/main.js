@@ -2,8 +2,8 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
 import router from './router';
-import Toast from 'vue-toastification';
-import 'vue-toastification/dist/index.css';
+// import Toast from 'vue-toastification';
+// import 'vue-toastification/dist/index.css';
 import '@/assets/tailwind.css';
 
 const app = createApp(App);
@@ -15,7 +15,7 @@ const options = {
   pauseOnHover: true,
 };
 
-app.use(Toast, options);
+// app.use(Toast, options);
 
 app.use(createPinia());
 app.use(router);

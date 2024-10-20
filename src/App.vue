@@ -1,8 +1,15 @@
 <script>
+import { useStore } from './stores/counter';
 export default {
+  computed: {
+    showHeaderAndFooter() {
+      return this.$route.name !== 'signUp';
+    }
+  },
   data() {
     return {
-      mode: '#000'
+      mode: '#000',
+      store: useStore()
     }
   },
   methods: {
@@ -31,7 +38,7 @@ export default {
 
 <template>
   <div>
-    <header class="p-[20px]">
+    <header v-if="showHeaderAndFooter" class="p-[20px]">
       <div class="header-wrapper flex items-center justify-between pt-[15px] w-full">
         <router-link to="/">
           <h2 class="text-[30px]"><img class="w-[150px]" src="@/assets/images/png/logo.png" alt=""></h2>

@@ -4,7 +4,12 @@ import { defineStore } from 'pinia'
 export const useStore = defineStore('counter', () => {
   const createUser = ref(false)
   const authSwitch = ref(false)
-  const token = localStorage.getItem('token') ? localStorage.getItem('token') : ''
+  const data = localStorage.getItem('data') ? JSON.parse(localStorage.getItem('data')) : {}
+  // if(!data?.data) {
+  //   window.location.href = 'signUp'
+  // } else {
+  //   window.location.href = '/'
+  // }
   const noti = ref(false)
   const updateEmpShow = ref(true)
   const getItForUpdate = 0
@@ -12,16 +17,18 @@ export const useStore = defineStore('counter', () => {
   const davomatShow = ref(false)
   const empShow = ref(true)
   const editInfo = ref({}); 
+  const isSelected = false
   return { 
     createUser,
     authSwitch,
-    token,
+    data,
     noti,
     updateEmpShow,
     getItForUpdate,
     updateInfoEmp,
     davomatShow,
     empShow,
-    editInfo
+    editInfo,
+    isSelected
   }
 })

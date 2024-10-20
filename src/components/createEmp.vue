@@ -2,7 +2,23 @@
 import { createEmp } from '@/services/services';
 import { useStore } from '@/stores/counter';
 
+import Toast, { useToast } from 'vue-toastification';
+import 'vue-toastification/dist/index.css';
+
 export default {
+    setup() {
+        const toast = useToast();
+
+        return {
+            showSuccessNotification() {
+                toast.success("Hodim muvofaqiyatlik qo'shildi");
+            },
+
+            showErrorNotification() {
+                toast.error("Login yoki parolda xatolik");
+            }
+        }
+    },
     data() {
         return {
             store: useStore(),
@@ -33,6 +49,11 @@ export default {
             };
             const res = await createEmp(data)
             console.log(res)
+            if(res.status == 200) {
+                this.showSuccessNotification()
+            } else {
+                this.showErrorNotification()
+            }
             return res
         }
     }

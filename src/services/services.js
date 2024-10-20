@@ -24,10 +24,10 @@ export const token = async (username, password) => {
         }
     })
     if(res.data) {
-        localStorage.setItem('token', res?.data?.access_token)
+        localStorage.setItem('data', JSON.stringify(res))
         setTimeout(()=> {
             window.location.reload(true)
-        }, 3000)
+        }, 1000)
     }
 }
 
@@ -36,18 +36,16 @@ export const getUsers = async (page = 0, branchId = 0) => {
     
     const res = await service.get(`/get_users?branch_id=${branchId}&page=${page}`, {
         headers: {
-            Authorization: `Bearer ${store.token}`,
+            Authorization: `Bearer ${store.data.data.access_token}`,
         },
     });
 
     if (res.status === 200) {
         store.authSwitch = false;
     }
-
-    // Убедитесь, что вы возвращаете правильные данные
     return {
-        users: Array.isArray(res.data.data) ? res.data.data : [], // Измените на res.data.data
-        hasMore: res.data.pages > page + 1 // Проверяем, есть ли еще страницы
+        users: Array.isArray(res.data.data) ? res.data.data : [],
+        hasMore: res.data.pages > page + 1
     };
 };
 
@@ -56,7 +54,7 @@ export const createEmp = async (body) => {
     const store = useStore()
     const res = await service.post("/create_user", body, {
         headers: {
-            Authorization: `Bearer ${store.token}`,
+            Authorization: `Bearer ${store.data.data.access_token}`,
         }
     })
     if(res.status == 200) {
@@ -77,31 +75,58 @@ export const updateEmp = async (body)=> {
     const res = await service.put("/update_user", body, {
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${store.token}`,
+            'Authorization': `Bearer ${store.data.data.access_token}`,
         }
     })
     console.log(res)
 }
 
 
-export const getDavomat = async ()=> {
-    const store = useStore()
-    const res = await service.get("/get_davomat?branch_id=0&user_id=0&page=0&limit=25", {
-        headers: {
-            Authorization: `Bearer ${store.token}`
-        }
-    })
-    return res
-}
+export const fetchDavomatFromApi = async ({ branchId, userId, fromTime, toTime, page, limit }) => {
+    const store = useStore(); // Получаем store
+
+    try {
+        const res = await service.get("/get_davomat", {
+            params: {
+                branch_id: branchId,
+                user_id: userId,
+                from_time: fromTime,
+                to_time: toTime,
+                page,
+                limit
+            },
+            headers: {
+                Authorization: `Bearer ${store.data.data.access_token}`, // Авторизация через токен
+            }
+        });
+
+        return res;
+    } catch (error) {
+        console.error('Ошибка при выполнении запроса:', error);
+        throw error; // Пробрасываем ошибку, чтобы можно было обрабатывать её выше
+    }
+};
 
 export const enterUser = async (id)=> {
     const store = useStore()
     const res = await service.post("/enter_user", id, {
         headers: {
-            Authorization: `Bearer ${store.token}`,
+            Authorization: `Bearer ${store.data.data.access_token}`,
             "Content-Type": `application/json`
         }
     })
     console.log(res)
+    return res
+}
+
+export const closeUser = async (data)=> {
+    const store = useStore()
+    const res = await service.put("/close_user", data, {
+        headers: {
+            Authorization: `Bearer ${store.data.data.access_token}`,
+            "Content-Type": `application/json`
+        }
+    })
+    console.log(data)
     return res
 }

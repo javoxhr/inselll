@@ -1,12 +1,14 @@
 <script>
 import { getUsers } from '@/services/services.js';
-import { getDavomat } from '@/services/services.js';
+import { fetchDavomatFromApi } from '@/services/services.js';
 import createEmp from '@/components/createEmp.vue';
 import empCard from '@/components/empCard.vue';
 import register from '@/components/register.vue';
 import { useStore } from '@/stores/counter';
 import updateEmp from '@/components/updateEmp.vue';
 import davomatCard from '@/components/davomatCard.vue';
+import { enterUser, closeUser } from "@/services/services";
+import { useToast } from 'vue-toastification';
 
 export default {
   components: {
@@ -23,9 +25,20 @@ export default {
       limit: 5,
       page: 0,
       loading: false,
-      davomatUsers: {},
-      noMoreData: false
+      davomatUsers: {
+        page: 0,
+        current_page: 0,
+        limit: 25,
+        data: [],
+        user_data: []
+      },
+      noMoreData: false,
+      selectedUsers: [],
+      toast: null
     }
+  },
+  mounted() {
+    this.toast = useToast();
   },
   methods: {
     async fetchUsers() {
@@ -55,9 +68,64 @@ export default {
         }
       } catch (error) {
         console.error('Ошибка при загрузке пользователей:', error.message || error);
+        localStorage.removeItem('data')
+        window.location.reload(true)
       } finally {
         this.loading = false;
         this.scrollToTop();
+      }
+    },
+
+    handleSelection({ user, selected }) {
+      if (selected) {
+        this.selectedUsers.push(user)
+      } else {
+        this.selectedUsers = this.selectedUsers.filter(u => u.id !== user.id);
+      }
+    },
+
+    toggleAll(event) {
+      const checked = event.target.checked;
+      this.selectedUsers = checked ? [...this.davomatUsers] : [];
+    },
+
+    async submitAttendance() {
+      if (this.selectedUsers.length === 0) {
+        this.toast.error("Выберите хотя бы одного пользователя");
+        return;
+      }
+
+      const userIds = this.selectedUsers.map(user => ({ user_id: user.Davomat.user_id }));
+
+      try {
+        const res = await enterUser(userIds);
+        if (res?.status === 200) {
+          this.toast.success("Amalyot bajarildi");
+          this.selectedUsers = [];
+        }
+      } catch (error) {
+        console.error("Ошибка при отправке данных:", error);
+        this.toast.info("Hodim kelganlar ro'yhatida mavjud");
+      }
+    },
+
+    async submitAttendanceClose() {
+      if (this.selectedUsers.length === 0) {
+        this.toast.error("Выберите хотя бы одного пользователя");
+        return;
+      }
+
+      const userIds = this.selectedUsers.map(user => ({ user_id: user.Davomat.davomat_id }));
+
+      try {
+        const res = await closeUser(userIds);
+        if (res?.status === 200) {
+          this.toast.success("Amaliyot muvaffaqiyatli amalga oshirildi");
+          this.selectedUsers = [];
+        }
+      } catch (error) {
+        console.error("Ошибка при отправке данных:", error);
+        this.toast.info("Hodim kelganlar ro'yhatida mavjud");
       }
     },
 
@@ -83,18 +151,58 @@ export default {
       }
     },
 
-
     async getDavomat() {
-      const res = await getDavomat()
-      this.davomatUsers = res?.data?.data
-      console.log(res.data.data)
+      try {
+        const branchId = 1
+        const userId = 32
+        const fromTime = '2024-01-01'
+        const toTime = '2024-12-31'
+        const page = 0
+        const limit = 25
+
+        const res = await fetchDavomatFromApi(branchId, userId, fromTime, toTime, page, limit);
+
+        this.davomatUsers = res.data;
+        console.log(this.davomatUsers);
+
+
+        // res.data.user_data for(user)
+        // res.data.data.filter((e){ user.id == e})
+
+        // res.data.user_data.forEach((el)=> { 
+        //   res.data.data.forEach((us)=> {
+        //     if(el.id == us?.Davomat.user_id) {
+        //       console.log(el.id)
+        //       console.log(us.id)
+        //     }
+        //   })
+        // })
+
+
+      } catch (error) {
+        console.error('Ошибка при получении данных:', error);
+      }
+    },
+    findDavomat(id) {
+      let obj = this.davomatUsers.data.find((e) => {
+        return e.Davomat.user_id == id
+      })
+      return obj
     }
+
 
   },
 
   mounted() {
     this.fetchUsers();
     this.getDavomat();
+    this.toast = useToast();
+    // if(!this.store.data.data.access_token) {
+    //   console.log(true)
+    // } else {
+    //   console.log(false)
+    //   window.location.href = "signUp"
+    // }
   }
 }
 </script>
@@ -105,9 +213,6 @@ export default {
     <register />
     <button @click="store.authSwitch = true"
       class="p-[10px] bg-orange-600 rounded-[5px] absolute top-[110px] right-[30px]">Authorization</button>
-    <span style="border: 2px solid #16a34a; transition: all .5s ease;" :style="{ 'top': store.noti ? 0 : -100 + '%' }"
-      class="notification fixed left-[43%] top-[0] p-[13px] bg-[#000] rounded-[5px]">Hodim mofaqiyatlik
-      qo'shildi!</span>
     <div class="w-full flex gap-[20px]">
       <div class="left-nav-bar-items flex flex-col gap-[10px] mt-[20px]">
         <div style="border: 1px solid rgba(178 173 173);"
@@ -311,22 +416,46 @@ export default {
           </div>
 
           <div class="attend mt-[40px]" v-if="store.davomatShow">
+            <!-- <pre>
+              {{ davomatUsers.user_data }}
+            </pre> -->
             <div style="border: 1px solid rgba(178 173 173);" class="attend-wrapper rounded-[10px] p-[15px] pb-[30px]">
+              <button v-if="selectedUsers.length" @click="submitAttendance"
+                class="pt-[10px] pb-[10px] pl-[20px] pr-[20px] bg-green-600 fixed bottom-2 rounded-[5px] right-[190px]">
+                Keldi {{ selectedUsers.length }} ta hodim
+              </button>
+              <button v-if="selectedUsers.length" @click="submitAttendanceClose"
+                class="pt-[10px] pb-[10px] pl-[20px] pr-[20px] bg-red-600 fixed bottom-2 rounded-[5px] right-5">
+                Ketdi {{ selectedUsers.length }} ta hodim
+              </button>
               <table class="w-full border-collapse">
-                <button class="pt-[10px] pb-[10px] pl-[20px] pr-[20px] bg-orange-600 fixed bottom-2 rounded-[5px] right-2">Yuborish</button>
                 <thead>
                   <tr class="attend-top pb-[12px] mt-[10px]">
-                    <th style="color: rgba(178 173 173);" class="border p-2"><input class="check-inp w-[25px] h-[25px] mt-[6px]" type="checkbox" ></th>
-                    <th style="color: rgba(178 173 173);" class="border p-2">Ismi</th>
-                    <th style="color: rgba(178 173 173);" class="border p-2">Keldi</th>
-                    <th style="color: rgba(178 173 173);" class="border p-2">Ketdi</th>
-                    <th style="color: rgba(178 173 173);" class="border p-2">Jarima/Bonus</th>
+                    <th style="color: rgba(178, 173, 173);" class="border p-2">
+                      <input class="check-inp w-[25px] h-[25px] mt-[6px]" type="checkbox" @change="toggleAll" />
+                    </th>
+                    <th style="color: rgba(178, 173, 173);" class="border p-2">Ismi</th>
+                    <th style="color: rgba(178, 173, 173);" class="border p-2">Keldi</th>
+                    <th style="color: rgba(178, 173, 173);" class="border p-2">Ketdi</th>
+                    <th style="color: rgba(178, 173, 173);" class="border p-2">Jarima/Bonus</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  <!-- Здесь компоненты отображают строки таблицы -->
-                  <davomatCard v-for="item in davomatUsers" :key="item.id" :attend="item" />
+                  <!-- <davomatCard v-for="(item) in users" :key="item.id" :attend="item" @select-attend="handleSelection" /> -->
+                  <tr v-for="item in davomatUsers?.user_data" :key="item">
+                    <td style="text-align: center;" class="border p-2">
+                      <input type="checkbox" v-model="isSelected" @change="toggleSelection"
+                        class="check-inp w-[25px] h-[25px] mt-[6px]" />
+                    </td>
+                    <td style="color: rgba(178, 173, 173);" class="border p-2" @click="closeUser()">{{ item?.name }}
+                    </td>
+                    <td style="color: rgba(178, 173, 173);" class="border p-2">{{
+                      findDavomat(item.id)?.Davomat?.kelgan_vaqt }}</td>
+                    <td style="color: rgba(178, 173, 173);" class="border p-2">{{
+                      findDavomat(item.id)?.Davomat?.ketgan_vaqt }}</td>
+                    <td style="color: rgba(178, 173, 173);" class="border p-2 flex flex-col">{{ findDavomat(item.id)?.Davomat?.money }} <span>{{ findDavomat(item.id)?.Davomat.money2 }}</span></td>
+                  </tr>
                 </tbody>
               </table>
             </div>
